@@ -1,66 +1,67 @@
+function createElement(tag, attrs = {}, styles = {}) {
+  const el = document.createElement(tag);
+  Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, value));
+  Object.assign(el.style, styles);
+  return el;
+}
+
+function showReminder(name) {
+  if (document.getElementById("reminder-overlay")) return;
+
+  const overlay = createElement("div", {
+    id: "reminder-overlay",
+    class: "reminder-overlay",
+    role: "dialog",
+    "aria-modal": "true"
+  });
+
+  const popup = createElement("div", {
+    class: "reminder-popup",
+    tabindex: "-1"
+  });
+
+  const closeBtn = createElement("span", {
+    "aria-label": "Close reminder",
+    class: "reminder-close",
+    tabIndex: "0"
+  });
+  closeBtn.innerHTML = "&times;";
+  closeBtn.onclick = () => overlay.remove();
+  closeBtn.onkeydown = (e) => {
+    if (e.key === "Enter" || e.key === " ") overlay.remove();
+  };
+
+  const deleteBtn = createElement("button", {
+    class: "reminder-delete"
+  });
+  deleteBtn.textContent = "Delete Reminder";
+  deleteBtn.onclick = () => {
+    browser.runtime.sendMessage({ action: "removeTask", name });
+    overlay.remove();
+  };
+
+  const text = createElement("p", {
+    class: "reminder-text"
+  });
+  text.textContent = `Reminder: ${name}`;
+
+  popup.appendChild(closeBtn);
+  popup.appendChild(text);
+  popup.appendChild(deleteBtn);
+  overlay.appendChild(popup);
+  document.body.appendChild(overlay);
+
+  // Focus popup for accessibility
+  popup.focus();
+
+  // Close on Escape key
+  overlay.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") overlay.remove();
+  });
+}
+
 browser.runtime.onMessage.addListener((message) => {
   if (message.action === "showReminder") {
-    // Prevent duplicate overlays
-    if (document.getElementById("reminder-overlay")) return;
-    
-    // Create overlay 
-    const overlay = document.createElement("div");
-    overlay.style.position = "fixed";
-    overlay.style.top = "0";
-    overlay.style.left = "0";
-    overlay.style.width = "100%";
-    overlay.style.height = "100%";
-    overlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
-    overlay.style.display = "flex";
-    overlay.style.alignItems = "center";
-    overlay.style.justifyContent = "center";
-    overlay.style.zIndex = "999999";
-
-    // Create popup box
-    const popup = document.createElement("div");
-    popup.style.background = "white";
-    popup.style.padding = "20px";
-    popup.style.borderRadius = "8px";
-    popup.style.boxShadow = "0 4px 15px rgba(0,0,0,0.3)";
-    popup.style.maxWidth = "300px";
-    popup.style.width = "80%";
-    popup.style.textAlign = "center";
-    popup.style.position = "relative";
-
-    // Close button
-    const closeBtn = document.createElement("span");
-    closeBtn.innerHTML = "&times;"; // × symbol
-    closeBtn.style.position = "absolute";
-    closeBtn.style.top = "10px";
-    closeBtn.style.right = "15px";
-    closeBtn.style.cursor = "pointer";
-    closeBtn.style.fontSize = "20px";
-    closeBtn.style.fontWeight = "bold";
-    closeBtn.onclick = () => overlay.remove();
-
-    const deleteBtn = document.createElement("button");
-    deleteBtn.textContent = "Delete Reminder";
-    deleteBtn.style.marginTop = "10px";
-    deleteBtn.onclick = () => {
-      browser.runtime.sendMessage({
-        action: "removeTask",
-        name: message.name
-      });
-      overlay.remove();
-    };
-
-    // Reminder text
-    const text = document.createElement("p");
-    text.textContent = `Reminder: ${message.name}`;
-    text.style.fontSize = "16px";
-    text.style.margin = "20px 0 0 0";
-
-    // Append everything
-    popup.appendChild(closeBtn);
-    popup.appendChild(document.createElement("br"));
-    popup.appendChild(deleteBtn);
-    popup.appendChild(text);
-    overlay.appendChild(popup);
-    document.body.appendChild(overlay);
+    showReminder(message.name);
   }
 });

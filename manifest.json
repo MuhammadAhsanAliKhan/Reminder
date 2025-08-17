@@ -11,7 +11,8 @@
   [
     {
       "matches": ["<all_urls>"],
-      "js": ["reminder.js"]
+      "js": ["reminder.js"],
+      "css": ["reminder.css"]
     }
   ],
   "browser_action": 
