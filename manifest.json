@@ -1,0 +1,31 @@
+{
+  "manifest_version": 2,
+  "name": "reminders",
+  "version": "1.0",
+  "description": "Remind you important things",
+  "icons": 
+  {
+    "48":"icons/reminder.png"
+  },
+  "content_scripts":
+  [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["reminder.js"]
+    }
+  ],
+  "browser_action": 
+  {
+    "default_popup": "popup/popup.html"
+  },
+  "background": 
+  {
+    "scripts": ["background.js"],
+    "persistent": true
+  },
+  "permissions": 
+  [
+    "notifications"
+  ]
+
+}
