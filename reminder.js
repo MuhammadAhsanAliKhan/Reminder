@@ -5,7 +5,7 @@ function createElement(tag, attrs = {}, styles = {}) {
   return el;
 }
 
-function showReminder(name) {
+function showReminder(name, recurring = true) {
   if (document.getElementById("reminder-overlay")) return;
 
   const overlay = createElement("div", {
@@ -47,7 +47,9 @@ function showReminder(name) {
 
   popup.appendChild(closeBtn);
   popup.appendChild(text);
-  popup.appendChild(deleteBtn);
+  if (recurring) {
+    popup.appendChild(deleteBtn);
+  }
   overlay.appendChild(popup);
   document.body.appendChild(overlay);
 
@@ -62,6 +64,6 @@ function showReminder(name) {
 
 browser.runtime.onMessage.addListener((message) => {
   if (message.action === "showReminder") {
-    showReminder(message.name);
+    showReminder(message.name, message.recurring);
   }
 });

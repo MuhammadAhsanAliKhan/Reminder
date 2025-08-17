@@ -3,11 +3,10 @@ const MIN_IN_MS = 60000;
 
 
 // interval is in minutes
-function addTask(name, interval) {
-  interval = interval * MIN_IN_MS
-  const time = new Date();
-  time.setMilliseconds(time.getMilliseconds() + interval);
-  let task = { name, time, interval };
+function addTask(name, interval, recurring = true) {
+  const intervalMs = interval * MIN_IN_MS;
+  const time = new Date(Date.now() + intervalMs);
+  const task = { name, time, interval: intervalMs, recurring };
   tasks.push(task);
 }
 
@@ -21,19 +20,25 @@ function sleep(ms) {
 
 async function start() {
   while (true) {
-    tasks.forEach(task => {
+    tasks.forEach((task, idx) => {
       const currentTime = new Date();
       if (task.time < currentTime) {
-        console.log(`Time to do ${task.name}`);
 
         browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
           browser.tabs.sendMessage(tabs[0].id, {
             action: "showReminder",
-            name: task.name
+            name: task.name,
+            recurring: task.recurring
           });
         });
         
-        task.time.setMilliseconds(task.time.getMilliseconds() + task.interval);
+        if (task.recurring) {
+          // Schedule next reminder
+          task.time = new Date(currentTime.getTime() + task.interval);
+        } else {
+          // Remove non-recurring task after showing
+          tasks.splice(idx, 1);
+        }      
       }
     });
 
@@ -44,7 +49,7 @@ async function start() {
 browser.runtime.onMessage.addListener((message) => {
   if (message.action === 'addTask') {
     console.log(`adding ${message.name}`)
-    addTask(message.name, message.interval);
+    addTask(message.name, message.interval, message.recurring);
   }
   else if (message.action === 'removeTask') {
     removeTask(message.name);

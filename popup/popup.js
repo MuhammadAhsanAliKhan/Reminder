@@ -1,6 +1,7 @@
 document.getElementById('add').addEventListener('click', () => {
   const name = document.getElementById('name').value.trim();
   const interval = parseInt(document.getElementById('interval').value.trim());
+  const recurring = document.getElementById('recurring').checked;
 
   const popupContent = document.getElementById('popup-content');
 
@@ -28,7 +29,8 @@ document.getElementById('add').addEventListener('click', () => {
   browser.runtime.sendMessage({
     action: 'addTask',
     name,
-    interval: interval
+    interval,
+    recurring
   });
 
   showMessage(`Reminder "${name}" added!`);
